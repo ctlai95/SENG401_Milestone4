@@ -1,0 +1,32 @@
+# Generated files
+*.class
+target
+logs
+*.log
+*.log.*
+test-output
+*.csv
+
+# Eclipse stuff
+bin
+.metadata
+.settings
+.project
+.classpath
+
+# Lib
+lib/ext/*.jar
+lib/plugins/*.jar
+
+# IntelliJ Idea
+.idea
+*.iml
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+src/main/native/*.so
+
+!code-formatting/*.jar
