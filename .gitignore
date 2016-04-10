@@ -11,8 +11,6 @@ test-output
 bin
 .metadata
 .settings
-.project
-.classpath
 
 # Lib
 lib/ext/*.jar
