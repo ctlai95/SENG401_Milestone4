@@ -11,10 +11,8 @@ class UpdateManager {
 
 	public static void main(String[] args) {
 		
-		UpdateWizard wizard = new UpdateWizard();
-		wizard.createWizard();
+		UpdateWizard.createWizard();
 		System.out.println("Hello World");
-		
 		
 		/*
 		try {
@@ -39,5 +37,6 @@ class UpdateManager {
 		System.out.println("The download has finished!");
 		*/
 	}
+	
 
 }
