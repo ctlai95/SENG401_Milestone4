@@ -1,5 +1,6 @@
 package update;
 
+import java.awt.CardLayout;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -8,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
@@ -17,7 +20,7 @@ public class UpdateManager {
 
 	}
 
-	public void startDownload(String filePath, JProgressBar bar) {
+	public void startDownload(String filePath, JProgressBar bar, JPanel wizardCards, JPanel wizardControls) {
 		Runnable updateThread = new Runnable() { 
 			public void run() {
 				try {
@@ -55,6 +58,12 @@ public class UpdateManager {
 					bos.close();
 					in.close();
 					
+					CardLayout clc = (CardLayout) wizardControls.getLayout();
+					CardLayout clp = (CardLayout) wizardCards.getLayout();
+					
+					clc.next(wizardControls);
+					clp.next(wizardCards);
+					
 				} catch (FileNotFoundException e) { 
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -63,7 +72,9 @@ public class UpdateManager {
 					
 			}
 		};
-		new Thread(updateThread).start();
+		Thread dThread = new Thread(updateThread);
+		dThread.start();
+		
 	}
 
 }
