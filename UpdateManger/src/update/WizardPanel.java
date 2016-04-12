@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.util.Scanner;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -16,13 +17,16 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
 public class WizardPanel extends JPanel {
 
 	private static final JPanel wizardCards = new JPanel(new CardLayout());
 	private static final JPanel wizardControls = new JPanel(new CardLayout());
-
+	
+	private static JProgressBar bar = new JProgressBar();
+	private static String filePath = System.getProperty("user.home"); 
 	private static String next = "Next \u22b3";
 	private static String back = "\u22b2 Back";
 	private static String install = "Install";
@@ -37,16 +41,23 @@ public class WizardPanel extends JPanel {
 
 		JFrame frame = new JFrame("Update Wizard");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		bar.setMaximum(100000);
+	
 		wizardCards.add(startPanel());
 		wizardCards.add(fileDirectoryPanel());
-
-		String[] start = { next, cancel };
-		String[] basic = { back, next, cancel };
-		String[] update = { back, install, cancel };
+		wizardCards.add(updatePanel());
+		wizardCards.add(endPanel());
+		
+		// TODO: switch to args... later on
+		String[] start = {next, cancel};
+		String[] basic = {back, next, cancel};
+		String[] update = {back, install, cancel};
+		String[] end = {finish, cancel};
+	
 		wizardControls.add(controlPanel(start));
 		wizardControls.add(controlPanel(basic));
-
+		wizardControls.add(controlPanel(update));
+		wizardControls.add(controlPanel(end));
 		frame.add(wizardCards, BorderLayout.CENTER);
 		frame.add(wizardControls, BorderLayout.SOUTH);
 		frame.pack();
@@ -57,7 +68,7 @@ public class WizardPanel extends JPanel {
 
 	/************************** Panels **************************/
 
-	private static JPanel startPanel() {
+	private static WizardPanel startPanel() {
 
 		WizardPanel panelStart = new WizardPanel();
 		panelStart.setLayout(new BorderLayout());
@@ -76,7 +87,25 @@ public class WizardPanel extends JPanel {
 		return panelStart;
 	}
 
-	private static JPanel fileDirectoryPanel() {
+	private static WizardPanel endPanel() { 
+		
+		WizardPanel panelEnd = new WizardPanel();
+		panelEnd.setLayout(new BorderLayout());
+		panelEnd.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JLabel endHeader = new JLabel("<html> Completing the PerfCake Update Wizard </html>");
+		endHeader.setFont(new Font("Sherif", Font.BOLD, 20));
+
+		JLabel endParagraph = new JLabel("<html> Perfcake has been downloaded and unzipped in the folder. "
+				+ "<br><br> Click Finish to close this wizard. </html>");
+
+		panelEnd.add(endHeader, BorderLayout.NORTH);
+		panelEnd.add(endParagraph, BorderLayout.CENTER);
+		
+		
+		return panelEnd;
+	}
+	
+	private static WizardPanel fileDirectoryPanel() {
 
 		WizardPanel panel = new WizardPanel();
 		panel.setLayout(new GridBagLayout());
@@ -98,7 +127,8 @@ public class WizardPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (JFileChooser.APPROVE_OPTION == jfc.showOpenDialog(null)) {
-					textField.setText(jfc.getSelectedFile().getPath());
+					filePath = jfc.getSelectedFile().getPath();
+					textField.setText(filePath);
 				}
 			}
 		});
@@ -116,12 +146,10 @@ public class WizardPanel extends JPanel {
 		gc.anchor = GridBagConstraints.FIRST_LINE_START;
 		panel.add(fileHeader, gc);
 
-		gc.gridx = 0;
 		gc.gridy = 1;
 		gc.weighty = 0.75;
 		panel.add(fileParagraph, gc);
 
-		gc.gridx = 0;
 		gc.gridy = 2;
 		gc.weighty = 1.0;
 		gc.gridwidth = 1;
@@ -129,8 +157,6 @@ public class WizardPanel extends JPanel {
 		panel.add(textField, gc);
 
 		gc.gridx = 1;
-		gc.gridy = 2;
-		gc.weighty = 1.0;
 		gc.weightx = 0.25;
 		panel.add(browseButton, gc);
 
@@ -138,12 +164,45 @@ public class WizardPanel extends JPanel {
 
 	}
 
-	private static JPanel downloadPanel() {
+	private static WizardPanel updatePanel() {
+		
+		WizardPanel panel = new WizardPanel();
+		panel.setLayout(new GridBagLayout());
+				
+		JLabel updateHeader = new JLabel("<html> Download </html>");
+		updateHeader.setFont(new Font("Sherif", Font.BOLD, 20));
+		
+		JLabel updateParagraph = new JLabel("<html> The application is being installed. Please wait... </html>");
 
-		return null;
+		
+		GridBagConstraints gc = new GridBagConstraints();
+		gc.fill = GridBagConstraints.HORIZONTAL;
+		gc.insets = new Insets(10, 10, 10, 10);
+
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 1;
+		gc.weighty = 0.25;
+		gc.gridwidth = 2;
+		gc.anchor = GridBagConstraints.FIRST_LINE_START;
+		panel.add(updateHeader, gc);
+
+		gc.gridy = 1;
+		gc.weighty = 0.75;
+		panel.add(updateParagraph, gc);
+
+		gc.gridy = 2;
+		gc.weighty = 1.0;
+		gc.gridwidth = 1;
+		gc.anchor = GridBagConstraints.CENTER;
+		panel.add(bar, gc);
+	
+		return panel;
 
 	}
-
+	
+	
+	// TODO Switch to ...args later on
 	private static JPanel controlPanel(String[] buttons) {
 
 		JPanel control = new JPanel();
@@ -162,15 +221,14 @@ public class WizardPanel extends JPanel {
 
 				}));
 			} else if (buttons[i].equals(back)) {
-				control.add(new JButton(new AbstractAction(back) {
-
+				JButton backButton = new JButton(new AbstractAction(back) {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						clc.previous(wizardControls);
 						clp.previous(wizardCards);
 					}
-
-				}));
+				});
+				control.add(backButton);
 			} else if (buttons[i].equals(finish) || buttons[i].equals(cancel)) {
 				control.add(new JButton(new AbstractAction(buttons[i]) {
 
@@ -181,9 +239,19 @@ public class WizardPanel extends JPanel {
 
 				}));
 			} else if (buttons[i].equals(install)) {
-				// Create new update manager instance
-				// wait for progress bar to equal 100
-				// once it reaches 100 got to finish page
+				JButton updateButton = new JButton(new AbstractAction(install) {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						UpdateManager um = new UpdateManager();
+						JButton button = (JButton) e.getSource();
+						button.setEnabled(false);	
+						um.startDownload(filePath, bar);
+					}
+				});
+				control.add(updateButton);
+				clc.next(wizardControls);
+				clp.next(wizardCards);
 			}
 
 		}
