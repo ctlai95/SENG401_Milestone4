@@ -8,8 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.util.Scanner;
-
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -24,9 +22,9 @@ public class WizardPanel extends JPanel {
 
 	private static final JPanel wizardCards = new JPanel(new CardLayout());
 	private static final JPanel wizardControls = new JPanel(new CardLayout());
-	
+
 	private static JProgressBar bar = new JProgressBar();
-	private static String filePath = System.getProperty("user.home"); 
+	private static String filePath = System.getProperty("user.home");
 	private static String next = "Next \u22b3";
 	private static String back = "\u22b2 Back";
 	private static String install = "Install";
@@ -42,18 +40,18 @@ public class WizardPanel extends JPanel {
 		JFrame frame = new JFrame("Update Wizard");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		bar.setMaximum(100000);
-	
+
 		wizardCards.add(startPanel());
 		wizardCards.add(fileDirectoryPanel());
 		wizardCards.add(updatePanel());
 		wizardCards.add(endPanel());
-		
+
 		// TODO: switch to args... later on
-		String[] start = {next, cancel};
-		String[] basic = {back, next, cancel};
-		String[] update = {back, install, cancel};
-		String[] end = {finish, cancel};
-	
+		String[] start = { next, cancel };
+		String[] basic = { back, next, cancel };
+		String[] update = { back, install, cancel };
+		String[] end = { finish, cancel };
+
 		wizardControls.add(controlPanel(start));
 		wizardControls.add(controlPanel(basic));
 		wizardControls.add(controlPanel(update));
@@ -87,8 +85,8 @@ public class WizardPanel extends JPanel {
 		return panelStart;
 	}
 
-	private static WizardPanel endPanel() { 
-		
+	private static WizardPanel endPanel() {
+
 		WizardPanel panelEnd = new WizardPanel();
 		panelEnd.setLayout(new BorderLayout());
 		panelEnd.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -100,11 +98,10 @@ public class WizardPanel extends JPanel {
 
 		panelEnd.add(endHeader, BorderLayout.NORTH);
 		panelEnd.add(endParagraph, BorderLayout.CENTER);
-		
-		
+
 		return panelEnd;
 	}
-	
+
 	private static WizardPanel fileDirectoryPanel() {
 
 		WizardPanel panel = new WizardPanel();
@@ -165,16 +162,15 @@ public class WizardPanel extends JPanel {
 	}
 
 	private static WizardPanel updatePanel() {
-		
+
 		WizardPanel panel = new WizardPanel();
 		panel.setLayout(new GridBagLayout());
-				
+
 		JLabel updateHeader = new JLabel("<html> Download </html>");
 		updateHeader.setFont(new Font("Sherif", Font.BOLD, 20));
-		
+
 		JLabel updateParagraph = new JLabel("<html> The application is being installed. Please wait... </html>");
 
-		
 		GridBagConstraints gc = new GridBagConstraints();
 		gc.fill = GridBagConstraints.HORIZONTAL;
 		gc.insets = new Insets(10, 10, 10, 10);
@@ -196,12 +192,11 @@ public class WizardPanel extends JPanel {
 		gc.gridwidth = 1;
 		gc.anchor = GridBagConstraints.CENTER;
 		panel.add(bar, gc);
-	
+
 		return panel;
 
 	}
-	
-	
+
 	// TODO Switch to ...args later on
 	private static JPanel controlPanel(String[] buttons) {
 
@@ -221,14 +216,17 @@ public class WizardPanel extends JPanel {
 
 				}));
 			} else if (buttons[i].equals(back)) {
-				JButton backButton = new JButton(new AbstractAction(back) {
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						clc.previous(wizardControls);
-						clp.previous(wizardCards);
-					}
-				});
-				control.add(backButton);
+				if (!buttons[i + 1].equals(install)) {
+					JButton backButton = new JButton(new AbstractAction(back) {
+						@Override
+						public void actionPerformed(ActionEvent arg0) {
+							clc.previous(wizardControls);
+							clp.previous(wizardCards);
+						}
+					});
+					control.add(backButton);
+				}
+
 			} else if (buttons[i].equals(finish) || buttons[i].equals(cancel)) {
 				control.add(new JButton(new AbstractAction(buttons[i]) {
 
@@ -239,23 +237,41 @@ public class WizardPanel extends JPanel {
 
 				}));
 			} else if (buttons[i].equals(install)) {
-				JButton updateButton = new JButton(new AbstractAction(install) {
+				
+				JButton backButton = new JButton(); 
+				backButton.setAction(new AbstractAction(back){
 
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						clc.previous(wizardControls);
+						clp.previous(wizardCards);
+					}
+					
+				});
+				
+				JButton updateButton = new JButton(new AbstractAction(install) {
+					private JButton bButton; 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						UpdateManager um = new UpdateManager();
 						JButton button = (JButton) e.getSource();
-						button.setEnabled(false);	
-						um.startDownload(filePath, bar);
+						button.setEnabled(false);
+						um.startDownload(filePath, bar, wizardCards, wizardControls);
+						bButton.setEnabled(false);
 					}
-				});
+					private AbstractAction init(JButton button) {
+						bButton = button;
+						return this;
+					}
+				}.init(backButton));
+				
+				control.add(backButton);
 				control.add(updateButton);
-				clc.next(wizardControls);
-				clp.next(wizardCards);
 			}
 
 		}
 
 		return control;
 	}
+
 }
